@@ -88,7 +88,7 @@ export default function HomePage() {
       <div className="today-banner">
         <div className="banner-text">
           <div className="banner-greeting">
-            {isToday ? `${new Date().getHours() < 12 ? '🌅 Good morning' : new Date().getHours() < 17 ? '☀️ Good afternoon' : '🌙 Good evening'}, ${displayName}!` : `📅 ${formattedDate}`}
+            {isToday ? `${new Date().getHours() < 12 ? '🌅 Good morning' : new Date().getHours() < 17 ? '☀️ Good afternoon' : '🌙 Good evening'}, Jai !` : `📅 ${formattedDate}`}
           </div>
           <div className="banner-title">
             {isToday ? 'Let\'s crush your habits today' : formattedDate}

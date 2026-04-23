@@ -81,9 +81,9 @@ self.addEventListener('fetch', (event) => {
   if (
     url.origin === self.location.origin &&
     (request.destination === 'script' ||
-     request.destination === 'style' ||
-     request.destination === 'image' ||
-     request.destination === 'font')
+      request.destination === 'style' ||
+      request.destination === 'image' ||
+      request.destination === 'font')
   ) {
     event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
     return;
