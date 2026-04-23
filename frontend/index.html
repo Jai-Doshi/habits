@@ -33,19 +33,33 @@
             .register('/sw.js')
             .then((reg) => {
               console.log('[App] Service Worker registered, scope:', reg.scope);
-              // Listen for updates
+
+              // Check for updates every 60 seconds so deployed code is picked up quickly
+              setInterval(() => reg.update(), 60 * 1000);
+
+              // Listen for a new service worker installing
               reg.addEventListener('updatefound', () => {
                 const newWorker = reg.installing;
                 if (newWorker) {
                   newWorker.addEventListener('statechange', () => {
-                    if (newWorker.state === 'activated' && navigator.serviceWorker.controller) {
-                      console.log('[App] New content available — refresh for updates.');
+                    if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                      console.log('[App] New content available — reloading…');
                     }
                   });
                 }
               });
             })
             .catch((err) => console.warn('[App] SW registration failed:', err));
+
+          // Auto-reload when a new service worker takes control.
+          // This fires after skipWaiting() + clients.claim() in sw.js.
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (refreshing) return;
+            refreshing = true;
+            console.log('[App] New service worker active — reloading page.');
+            window.location.reload();
+          });
         });
       }
     </script>

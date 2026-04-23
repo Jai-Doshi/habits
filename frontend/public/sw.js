@@ -1,6 +1,6 @@
 // ─── HabitFlow Service Worker ───
-// Cache-first for app shell, network-first for API calls
-const CACHE_VERSION = 'habitflow-v1';
+// Network-first for HTML/navigation, cache-first for hashed static assets
+const CACHE_VERSION = 'habitflow-v2';
 const APP_SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const DYNAMIC_CACHE = `${CACHE_VERSION}-dynamic`;
 
@@ -23,11 +23,11 @@ self.addEventListener('install', (event) => {
       return cache.addAll(APP_SHELL_ASSETS);
     })
   );
-  // Activate immediately without waiting for old SW to die
+  // Activate immediately without waiting for old SW to finish
   self.skipWaiting();
 });
 
-// ─── ACTIVATE: Clean up old caches ───
+// ─── ACTIVATE: Clean up old caches & take control ───
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys().then((keys) => {
@@ -41,7 +41,7 @@ self.addEventListener('activate', (event) => {
       );
     })
   );
-  // Take control of all clients immediately
+  // Take control of all clients immediately so the new SW serves requests
   self.clients.claim();
 });
 
@@ -57,8 +57,6 @@ self.addEventListener('fetch', (event) => {
   if (!url.protocol.startsWith('http')) return;
 
   // ── Supabase API calls: Network-first ──
-  // Always try the network so auth tokens and data are fresh.
-  // Only fall back to cache if the network is unavailable.
   if (url.hostname.includes('supabase')) {
     event.respondWith(networkFirst(request));
     return;
@@ -70,17 +68,22 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ── App shell & static assets: Cache-first ──
-  // Vite-built assets have content hashes so stale files are harmless —
-  // a new build produces new file names.
+  // ── HTML / Navigation requests: Network-first ──
+  // Always fetch the latest index.html so new Vite-hashed asset URLs are picked up.
+  if (request.destination === 'document' || request.mode === 'navigate') {
+    event.respondWith(networkFirst(request));
+    return;
+  }
+
+  // ── Same-origin static assets (JS, CSS, images, fonts): Cache-first ──
+  // Vite adds content hashes to filenames, so a new build = new URLs.
+  // Old cached files are harmless and will be cleaned up naturally.
   if (
     url.origin === self.location.origin &&
-    (request.destination === 'document' ||
-     request.destination === 'script' ||
+    (request.destination === 'script' ||
      request.destination === 'style' ||
      request.destination === 'image' ||
-     request.destination === 'font' ||
-     url.pathname === '/')
+     request.destination === 'font')
   ) {
     event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
     return;

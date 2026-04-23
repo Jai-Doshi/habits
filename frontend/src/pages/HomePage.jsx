@@ -88,7 +88,7 @@ export default function HomePage() {
       <div className="today-banner">
         <div className="banner-text">
           <div className="banner-greeting">
-            {isToday ? `${new Date().getHours() < 12 ? '🌅 Good morning' : new Date().getHours() < 17 ? '☀️ Good afternoon' : '🌙 Good evening'}, Alex!` : `📅 ${formattedDate}`}
+            {isToday ? `${new Date().getHours() < 12 ? '🌅 Good morning' : new Date().getHours() < 17 ? '☀️ Good afternoon' : '🌙 Good evening'}, ${displayName}!` : `📅 ${formattedDate}`}
           </div>
           <div className="banner-title">
             {isToday ? 'Let\'s crush your habits today' : formattedDate}
@@ -176,7 +176,7 @@ export default function HomePage() {
                   <div className="habit-meta">
                     <div className="habit-points">
                       <div className="points-stars">
-                        {[1,2,3,4,5].map(s => (
+                        {[1, 2, 3, 4, 5].map(s => (
                           <span key={s} className={`star ${s <= habit.points ? '' : 'empty'}`}>★</span>
                         ))}
                       </div>
