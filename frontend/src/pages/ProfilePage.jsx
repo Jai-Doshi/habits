@@ -217,8 +217,9 @@ export default function ProfilePage() {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10, width: '100%' }}>
               {[
                 { label: 'Habits', val: habits.length, icon: '📋' },
-                { label: 'Days Done', val: totalDays, icon: '✅' },
-                { label: 'Best Streak', val: `${maxStreak}🔥`, icon: '' },
+                // { label: 'Days Done', val: totalDays, icon: '✅' },
+                { label: 'Best Streak', val: `${maxStreak}`, icon: '🔥' },
+                { label: 'Level', val: `${level}`, icon: '🏆' },
               ].map(s => (
                 <div key={s.label} style={{ textAlign: 'center', padding: '10px 6px', background: 'var(--bg-card-hover)', borderRadius: 'var(--radius-md)', border: '1px solid var(--border-subtle)' }}>
                   {s.icon && <div style={{ fontSize: 18 }}>{s.icon}</div>}
