@@ -42,13 +42,54 @@ export function AuthProvider({ children }) {
     // Arm the safety timer so we never block the app
     armSafetyTimer();
 
-    // ── Single source of truth: onAuthStateChange ──
-    // In Supabase v2 this fires immediately (synchronously in most cases)
-    // with the INITIAL_SESSION event on page load/refresh — no need for getSession()
+    let isMounted = true;
+
+    // ── 1. Immediately restore session from localStorage ──
+    // This resolves near-instantly (no network round-trip) and prevents
+    // the "blank screen / looks logged out" flash on return visits.
+    const restoreSession = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (!isMounted) return;
+        if (error) {
+          console.warn('getSession error:', error.message);
+          setUser(null);
+          setProfile(null);
+          setAuthLoading(false);
+          clearSafetyTimer();
+          return;
+        }
+        if (session?.user) {
+          setUser(session.user);
+          await loadProfile(session.user);
+        } else {
+          setUser(null);
+          setProfile(null);
+          setAuthLoading(false);
+          clearSafetyTimer();
+        }
+      } catch (err) {
+        if (!isMounted) return;
+        console.error('restoreSession exception:', err);
+        setUser(null);
+        setProfile(null);
+        setAuthLoading(false);
+        clearSafetyTimer();
+      }
+    };
+
+    restoreSession();
+
+    // ── 2. Listen for ongoing auth events (token refresh, sign-out, etc.) ──
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        clearSafetyTimer(); // got a response, disarm the safety net
-        armSafetyTimer();   // re-arm for the async loadProfile below
+        if (!isMounted) return;
+
+        // Skip the INITIAL_SESSION event — we already handled it above
+        if (event === 'INITIAL_SESSION') return;
+
+        clearSafetyTimer();
+        armSafetyTimer();
 
         setUser(session?.user ?? null);
 
@@ -64,6 +105,7 @@ export function AuthProvider({ children }) {
     );
 
     return () => {
+      isMounted = false;
       clearSafetyTimer();
       subscription.unsubscribe();
     };
