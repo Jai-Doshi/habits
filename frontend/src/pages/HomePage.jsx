@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Check, Flame, Star, Plus, ChevronLeft, ChevronRight, Zap } from 'lucide-react';
 import { useHabits } from '../context/HabitsContext';
+import { useAuth } from '../context/AuthContext';
 import AddHabitModal from '../components/AddHabitModal';
 import { localDateStr, todayLocal } from '../lib/date';
 
@@ -54,6 +55,7 @@ function ProgressRing({ value, max, size = 100, stroke = 8, color }) {
 
 export default function HomePage() {
   const { habits, logs, selectedDate, setSelectedDate, toggleHabit, getActiveHabitsForDate, getDayCompletion, totalPoints } = useHabits();
+  const { displayName } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0);
 
@@ -69,6 +71,7 @@ export default function HomePage() {
   const currentDateObj = new Date(selectedDate + 'T00:00:00');
   const formattedDate = currentDateObj.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
 
+  // const { displayName } = useAuth();
   const getStreak = (habitId) => {
     let streak = 0;
     const todayDate = new Date(today);
@@ -88,7 +91,7 @@ export default function HomePage() {
       <div className="today-banner">
         <div className="banner-text">
           <div className="banner-greeting">
-            {isToday ? `${new Date().getHours() < 12 ? '🌅 Good morning' : new Date().getHours() < 17 ? '☀️ Good afternoon' : '🌙 Good evening'}, Jai !` : `📅 ${formattedDate}`}
+            {isToday ? `${new Date().getHours() < 12 ? '🌅 Good morning' : new Date().getHours() < 17 ? '☀️ Good afternoon' : '🌙 Good evening'}, ${displayName}!` : `📅 ${formattedDate}`}
           </div>
           <div className="banner-title">
             {isToday ? 'Let\'s crush your habits today' : formattedDate}
