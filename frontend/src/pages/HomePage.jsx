@@ -54,10 +54,26 @@ function ProgressRing({ value, max, size = 100, stroke = 8, color }) {
 }
 
 export default function HomePage() {
-  const { habits, logs, selectedDate, setSelectedDate, toggleHabit, getActiveHabitsForDate, getDayCompletion, totalPoints } = useHabits();
+  const { habits, logs, selectedDate, setSelectedDate, toggleHabit, getActiveHabitsForDate, getDayCompletion, totalPoints, loading } = useHabits();
   const { displayName } = useAuth();
   const [showModal, setShowModal] = useState(false);
   const [weekOffset, setWeekOffset] = useState(0);
+
+  if (loading) {
+    return (
+      <div style={{
+        minHeight: '100vh', background: '#06060d',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+      }}>
+        <div style={{
+          width: 40, height: 40, border: '3px solid rgba(124,58,237,0.3)',
+          borderTopColor: '#7c3aed', borderRadius: '50%',
+          animation: 'spin 0.8s linear infinite',
+        }} />
+        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+      </div>
+    );
+  }
 
   const today = todayLocal();
   const centerDate = new Date();

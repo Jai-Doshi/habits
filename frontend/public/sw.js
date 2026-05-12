@@ -75,18 +75,25 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // ── Same-origin static assets (JS, CSS, images, fonts): Cache-first ──
-  // Vite adds content hashes to filenames, so a new build = new URLs.
-  // Old cached files are harmless and will be cleaned up naturally.
-  if (
-    url.origin === self.location.origin &&
-    (request.destination === 'script' ||
+  // ── Same-origin static assets (JS, CSS, images, fonts) ──
+  // Vite adds content hashes to filenames in production (e.g., /assets/main-1a2b3c.js).
+  // We can safely cache-first these hashed assets.
+  // For dev mode files (/src/, /@vite/), we MUST use network-first to allow HMR and updates.
+  if (url.origin === self.location.origin) {
+    if (url.pathname.startsWith('/assets/')) {
+      // Production hashed assets -> Cache First
+      event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
+      return;
+    } else if (
+      request.destination === 'script' ||
       request.destination === 'style' ||
       request.destination === 'image' ||
-      request.destination === 'font')
-  ) {
-    event.respondWith(cacheFirst(request, APP_SHELL_CACHE));
-    return;
+      request.destination === 'font'
+    ) {
+      // Dev mode or unhashed assets -> Network First
+      event.respondWith(networkFirst(request));
+      return;
+    }
   }
 
   // ── Everything else: Network-first ──
